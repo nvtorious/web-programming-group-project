@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+  </head>
+<body>
+<header>
+    <a href="index.html" class="logo">I-ppliance</a>
+
+    <div class="mobile-nav-button" id="mobile-card">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+    </div>
+    
+    <nav>
+      <a href="login.html">Login</a>
+        <a href="register.html">Registration</a>
+        <a href="index.html">Products</a>
+        <a href="cart.html">Cart</a>
+        <a href="about.html">About</a>
+        
+    </nav>
+</header>
+
+
+<main>
+    <section class="user-section">
+      <div class="user-card" id="checkout-wide-card">
+            <h2>Checkout</h2>
+
+            <div id="checkout-summary"></div>
+
+            <form id="checkout-form">
+                <div class="form-group">
+                    <label for="firstname">First Name</label>
+                    <input type="text" id="firstname" placeholder="Enter your First Name">
+                    <span class="error-msg" id="user-fname-error">First Name is required</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lastname">Last Name</label>
+                    <input type="text" id="lastname" placeholder="And your Last Name">
+                    <span class="error-msg" id="user-lname-error">Last Name is required</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter your Email">
+                    <span class="error-msg" id="user-email-error">Email is required</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="+1 (___) ___-____">
+                    <span class="error-msg" id="user-phone-error">Phone is required</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" placeholder="Enter your Street Address">
+                    <span class="error-msg" id="user-address-error">Address is required</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="parish">Parish</label>
+                    <select id="parish">
+                        <option value="">Select a Parish</option>
+                        <option value="kingston">Kingston</option>
+                        <option value="st-andrew">St. Andrew</option>
+                        <option value="st-thomas">St. Thomas</option>
+                        <option value="portland">Portland</option>
+                        <option value="st-james">St. James</option>
+                        <option value="st-ann">St. Ann</option>
+                        <option value="st-catherine">St. Catherine</option>
+                        <option value="clarendon">Clarendon</option>
+                        <option value="manchester">Manchester</option>
+                        <option value="hanover">Hanover</option>
+                        <option value="westmoreland">Westmoreland</option>
+                        <option value="st-elizabeth">St. Elizabeth</option>
+                        <option value="trelawny">Trelawny</option>
+                        <option value="st-mary">St. Mary</option>
+                    </select>
+                    <span class="error-msg" id="user-parish-error">Your Parish is required</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Amount Being Paid</label>
+                    <input type="text" id="amount" readonly placeholder="Calculated from cart">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn" id="confirm-order-btn">Confirm Order</button>
+                    <button type="button" class="btn" id="cancel-btn">Cancel</button>
+                    <button type="button" class="btn" id="clear-btn">Clear All</button>
+                    <button type="button" class="btn" id="close-btn">Close</button>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+
+ <footer>
+    <p>&copy; 2026 John-Mark Whittick | CIT2011 IA#2</p>
+</footer>
+<script src="../script.js"></script>
+</body>
+</html>
