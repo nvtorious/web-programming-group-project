@@ -65,67 +65,226 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    /* 2c. Form Validation / Input Handling*/
+    /* 2c. Form Validation / Input Handling */
     var loginBtn = document.getElementById('loginbtn');
     if (loginBtn) {
-        /* 2b. Event Handling for login form submission */
         loginBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            var userIn = document.getElementById('login-username').value.trim();
-            var passIn = document.getElementById('login-password').value.trim();
-            var userErr = document.getElementById('username-error');
-            var passErr = document.getElementById('password-error');
-            
-            /* 2c. Form Validation / Input Handling which checks for empty fields & DOM updates) */
-            if (userIn === '') { userErr.innerText = 'Username required'; userErr.style.display='block'; return; }
-            else { userErr.style.display='none'; }
-            
-            if (passIn === '') { passErr.innerText = 'Password required'; passErr.style.display='block'; return; }
-            else { passErr.style.display='none'; }
 
-            var savedUser = JSON.parse(localStorage.getItem('ippliance_user'));
-            if (savedUser && savedUser.username === userIn && savedUser.password === passIn) {
-                alert('Welcome back to I-ppliance!');
+            var trnIn = document.getElementById('login-trn').value.trim();
+            var passIn = document.getElementById('login-password').value.trim();
+            var trnErr = document.getElementById('trn-error');
+            var passErr = document.getElementById('password-error');
+
+            function showError(el, msg) {
+                if (el) {
+                    el.innerText = msg;
+                    el.style.display = 'block';
+                }
+            }
+
+            function hideError(el) {
+                if (el) el.style.display = 'none';
+            }
+
+            hideError(trnErr);
+            hideError(passErr);
+
+            if (trnIn === '') {
+                showError(trnErr, 'TRN is required');
+                return;
+            }
+
+            if (passIn === '') {
+                showError(passErr, 'Password is required');
+                return;
+            }
+
+            var registrationData = JSON.parse(localStorage.getItem('RegistrationData')) || [];
+
+            var foundUser = registrationData.find(function(user) {
+                return user.trn === trnIn && user.password === passIn;
+            });
+
+            if (foundUser) {
+                localStorage.setItem('CurrentUser', JSON.stringify(foundUser));
+                alert('Welcome back to I-ppliance, ' + foundUser.firstName + '!');
                 window.location.href = 'index.html';
             } else {
-                userErr.innerText = 'Invalid credentials'; userErr.style.display='block';
-                passErr.innerText = 'Invalid credentials'; passErr.style.display='block';
+                showError(trnErr, 'Invalid TRN or password');
+                showError(passErr, 'Invalid TRN or password');
             }
         });
     }
 
-    /* 2c. Form Validation / Input Handling*/
+    /* 2c. Form Validation / Input Handling */
     var regBtn = document.getElementById('registerbtn');
     if (regBtn) {
         regBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            /*  2a. DOM Manipulation functions */
+
             var fn = document.getElementById('firstname').value.trim();
             var ln = document.getElementById('lastname').value.trim();
-            var em = document.getElementById('email').value.trim();
             var db = document.getElementById('dob').value.trim();
-            var un = document.getElementById('username').value.trim();
+            var gd = document.getElementById('gender').value.trim();
+            var ph = document.getElementById('phone').value.trim();
+            var em = document.getElementById('email').value.trim();
+            var trn = document.getElementById('trn').value.trim();
             var pw = document.getElementById('reg-password').value.trim();
             var cp = document.getElementById('reg-cpassword').value.trim();
 
             var valid = true;
-            /* IA#2 Rubric: 2c. Form Validation / Input Handling which uses JS functions to update DOM with errors*/
-            function toggleErr(id, show) { var el = document.getElementById(id); if (el) el.style.display = show ? 'block' : 'none'; }
 
-            /* 2c. Form Validation for Checking empty fields and validating email input */
-            if (fn==='') { toggleErr('user-fname-error', true); valid=false; } else { toggleErr('user-fname-error', false); }
-            if (ln==='') { toggleErr('user-lname-error', true); valid=false; } else { toggleErr('user-lname-error', false); }
-            if (em==='' || !em.includes('@')) { toggleErr('user-email-error', true); valid=false; } else { toggleErr('user-email-error', false); }
-            if (db==='') { toggleErr('user-dob-error', true); valid=false; } else { toggleErr('user-dob-error', false); }
-            if (un==='') { toggleErr('username-error', true); valid=false; } else { toggleErr('username-error', false); }
-            if (pw==='') { toggleErr('user-password-error', true); valid=false; } else { toggleErr('user-password-error', false); }
-            if (pw!==cp || cp==='') { toggleErr('user-cpassword-error', true); valid=false; } else { toggleErr('user-cpassword-error', false); }
+            function toggleErr(id, show, msg) {
+                var el = document.getElementById(id);
+                if (el) {
+                    if (msg) el.innerText = msg;
+                    el.style.display = show ? 'block' : 'none';
+                }
+            }
+
+            function calculateAge(dob) {
+                var birthDate = new Date(dob);
+                var today = new Date();
+                var age = today.getFullYear() - birthDate.getFullYear();
+                var monthDiff = today.getMonth() - birthDate.getMonth();
+
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+
+                return age;
+            }
+
+            var trnPattern = /^\d{3}-\d{3}-\d{3}$/;
+            var phonePattern = /^[0-9\-\+\(\)\s]{7,15}$/;
+
+            if (fn === '') {
+                toggleErr('user-fname-error', true, 'First Name is required');
+                valid = false;
+            } else {
+                toggleErr('user-fname-error', false);
+            }
+
+            if (ln === '') {
+                toggleErr('user-lname-error', true, 'Last Name is required');
+                valid = false;
+            } else {
+                toggleErr('user-lname-error', false);
+            }
+
+            if (db === '') {
+                toggleErr('user-dob-error', true, 'Date of Birth is required');
+                valid = false;
+            } else if (calculateAge(db) < 18) {
+                toggleErr('user-dob-error', true, 'You must be at least 18 years old to register');
+                valid = false;
+            } else {
+                toggleErr('user-dob-error', false);
+            }
+
+            if (gd === '') {
+                toggleErr('user-gender-error', true, 'Gender is required');
+                valid = false;
+            } else {
+                toggleErr('user-gender-error', false);
+            }
+
+            if (ph === '') {
+                toggleErr('user-phone-error', true, 'Phone Number is required');
+                valid = false;
+            } else if (!phonePattern.test(ph)) {
+                toggleErr('user-phone-error', true, 'Enter a valid phone number');
+                valid = false;
+            } else {
+                toggleErr('user-phone-error', false);
+            }
+
+            if (em === '') {
+                toggleErr('user-email-error', true, 'Email is required');
+                valid = false;
+            } else if (!em.includes('@')) {
+                toggleErr('user-email-error', true, 'Enter a valid email address');
+                valid = false;
+            } else {
+                toggleErr('user-email-error', false);
+            }
+
+            if (trn === '') {
+                toggleErr('user-trn-error', true, 'TRN is required');
+                valid = false;
+            } else if (!trnPattern.test(trn)) {
+                toggleErr('user-trn-error', true, 'TRN must be in the format 000-000-000');
+                valid = false;
+            } else {
+                toggleErr('user-trn-error', false);
+            }
+
+            if (pw === '') {
+                toggleErr('user-password-error', true, 'Password is required');
+                valid = false;
+            } else if (pw.length < 8) {
+                toggleErr('user-password-error', true, 'Password must be at least 8 characters long');
+                valid = false;
+            } else {
+                toggleErr('user-password-error', false);
+            }
+
+            if (cp === '') {
+                toggleErr('user-cpassword-error', true, 'Confirm Password is required');
+                valid = false;
+            } else if (pw !== cp) {
+                toggleErr('user-cpassword-error', true, 'Passwords must match');
+                valid = false;
+            } else {
+                toggleErr('user-cpassword-error', false);
+            }
+
+            var registrationData = JSON.parse(localStorage.getItem('RegistrationData')) || [];
+
+            var trnExists = registrationData.some(function(user) {
+                return user.trn === trn;
+            });
+
+            if (valid && trnExists) {
+                toggleErr('user-trn-error', true, 'This TRN is already registered');
+                valid = false;
+            }
 
             if (valid) {
-                localStorage.setItem('ippliance_user', JSON.stringify({firstname: fn, username: un, password: pw}));
+                var newUser = {
+                    firstName: fn,
+                    lastName: ln,
+                    dateOfBirth: db,
+                    gender: gd,
+                    phoneNumber: ph,
+                    email: em,
+                    trn: trn,
+                    password: pw,
+                    dateOfRegistration: new Date().toLocaleString(),
+                    cart: {},
+                    invoices: []
+                };
+
+                registrationData.push(newUser);
+                localStorage.setItem('RegistrationData', JSON.stringify(registrationData));
+
                 alert('Registration successful, ' + fn + '! Redirecting to Login.');
                 window.location.href = 'login.html';
             }
+        });
+    }
+
+    /* Cancel button for registration form */
+    var cancelRegBtn = document.getElementById('cancelbtn');
+    if (cancelRegBtn) {
+        cancelRegBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var form = document.getElementById('register-form');
+            if (form) form.reset();
+            document.querySelectorAll('.error-msg').forEach(function(msg) {
+                msg.style.display = 'none';
+            });
         });
     }
 

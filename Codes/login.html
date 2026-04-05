@@ -35,22 +35,20 @@
             <h2>Login</h2>
 
             <form id="login-form">
-            <div class="form-group">
-                <label for="login-username">Username</label>
-                <input type="text" id="login-username" placeholder="Enter your username">
-                <span class="error-msg" id="username-error">Username is required</span>
-            </div>
 
-            <div class="form-group">
-                <label for="login-password">Password</label>
-                <input type="password" id="login-password" placeholder="Enter your password">
-                <span class="error-msg" id="password-error">Password is required</span>
-            </div>
-
-            <button class="btn" id="loginbtn">Login</button>
-
-            <p>First time user? <a href="register.html">Register here</a></p>
-          </form>
+                <div class="form-group">
+                  <label for="login-trn">TRN</label>
+                  <input type="text" id="login-trn" placeholder="Enter your TRN (000-000-000)" required>
+                  <span class="error-msg" id="trn-error">TRN is required</span>
+                </div>             
+                <div class="form-group">
+                  <label for="login-password">Password</label>
+                  <input type="password" id="login-password" placeholder="Enter your password" required>
+                  <span class="error-msg" id="password-error">Password is required</span>
+                </div>             
+                <button class="btn" id="loginbtn">Login</button>             
+                <p>First time user? <a href="register.html">Register here</a></p>              
+              </form>
 
 
             
