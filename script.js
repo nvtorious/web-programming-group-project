@@ -1,41 +1,43 @@
-/*2d. Basic Interactivity & Logic  for Data storage and arrays */
+/** GP 2: Create an array of product objects in JavaScript. Each product should have: name, price, description, image. */
 var products = [
-    { id: 1,  name: "Sharp Microwave",               category: "kitchen",       price: 18500,  image: "microwave.jpg" },
-    { id: 2,  name: "Oster Blender",                 category: "kitchen",       price: 7500,   image: "blender.jpg" },
-    { id: 3,  name: "Philips Air Fryer",             category: "kitchen",       price: 22000,  image: "airfryer.jpg" },
-    { id: 4,  name: "Samsung Refrigerator",          category: "kitchen",       price: 120000, image: "fridge.jpg" },
-    { id: 5,  name: "Breville Toaster Oven",         category: "kitchen",       price: 25000,  image: "toasteroven.jpg" },
-    { id: 6,  name: "Instant Pot Cooker",            category: "kitchen",       price: 19500,  image: "instantpot.jpg" },
-    { id: 7,  name: "Hamilton Beach Juicer",         category: "kitchen",       price: 9500,   image: "juicer.jpg" },
-    { id: 8,  name: "LG Washing Machine",            category: "laundry",       price: 95000,  image: "washer.jpg" },
-    { id: 9,  name: "Samsung Dryer",                 category: "laundry",       price: 85000,  image: "dryer.jpg" },
-    { id: 10, name: "Black+Decker Iron",             category: "laundry",       price: 6500,   image: "iron.jpg" },
-    { id: 11, name: "Whirlpool Washer",              category: "laundry",       price: 110000, image: "whirlpool.jpg" },
-    { id: 12, name: "Dyson Vacuum Cleaner",          category: "cleaning",      price: 85000,  image: "vacuum.jpg" },
-    { id: 13, name: "iRobot Roomba",                 category: "cleaning",      price: 120000, image: "roomba.jpg" },
-    { id: 14, name: "Karcher Pressure Washer",       category: "cleaning",      price: 55000,  image: "pressurewasher.jpg" },
-    { id: 15, name: "Black+Decker Dustbuster",       category: "cleaning",      price: 9500,   image: "dustbuster.jpg" },
-    { id: 16, name: "Samsung 55 Smart TV",           category: "entertainment", price: 145000, image: "tv.jpg" },
-    { id: 17, name: "JBL Speaker",                   category: "entertainment", price: 35000,  image: "jbl.jpg" },
-    { id: 18, name: "LG 43 Smart TV",                category: "entertainment", price: 95000,  image: "lgtv.jpg" },
-    { id: 19, name: "Sony Soundbar",                 category: "entertainment", price: 42000,  image: "soundbar.jpg" },
-    { id: 20, name: "Nintendo Switch Console",       category: "entertainment", price: 78000,  image: "nintendo.jpg" },
-    { id: 21, name: "PlayStation 5 Console",         category: "entertainment", price: 145000, image: "ps5.jpg" },
-    { id: 22, name: "Anker Projector",               category: "entertainment", price: 65000,  image: "anker.jpg" },
-    { id: 23, name: "DeWalt Power Drill",            category: "tools",         price: 18000,  image: "drill.jpg" },
-    { id: 24, name: "Makita Circular Saw",           category: "tools",         price: 28000,  image: "saw.jpg" },
-    { id: 25, name: "Stanley Toolbox Set",           category: "tools",         price: 15000,  image: "toolbox.jpg" },
-    { id: 26, name: "IMALENT High Lumen Flashlight", category: "tools",         price: 2400,   image: "flashlight.jpg" },
-    { id: 27, name: "Anker Solar Generator",         category: "tools",         price: 19500,  image: "solar.jpg" },
-    { id: 28, name: "Ryobi Heat Gun",                category: "tools",         price: 11000,  image: "heatgun.jpg" }
+    { id: 1,  name: "Sharp Microwave",               category: "kitchen",       price: 18500,  image: "microwave.jpg",      description: "1000W countertop microwave with multiple cooking presets." },
+    { id: 2,  name: "Oster Blender",                 category: "kitchen",       price: 7500,   image: "blender.jpg",        description: "10-speed glass jar blender, perfect for smoothies." },
+    { id: 3,  name: "Philips Air Fryer",             category: "kitchen",       price: 22000,  image: "airfryer.jpg",       description: "Oil-free digital air fryer for healthy, crispy meals." },
+    { id: 4,  name: "Samsung Refrigerator",          category: "kitchen",       price: 120000, image: "fridge.jpg",         description: "Double-door frost-free refrigerator." },
+    { id: 5,  name: "Breville Toaster Oven",         category: "kitchen",       price: 25000,  image: "toasteroven.jpg",    description: "Smart convection toaster oven for rapid cooking." },
+    { id: 6,  name: "Instant Pot Cooker",            category: "kitchen",       price: 19500,  image: "instantpot.jpg",     description: "7-in-1 multi-functional programmable cooker." },
+    { id: 7,  name: "Hamilton Beach Juicer",         category: "kitchen",       price: 9500,   image: "juicer.jpg",         description: "Big-mouth centrifugal juicer for whole fruits." },
+    { id: 8,  name: "LG Washing Machine",            category: "laundry",       price: 95000,  image: "washer.jpg",         description: "Front-load washing machine with TurboWash." },
+    { id: 9,  name: "Samsung Dryer",                 category: "laundry",       price: 85000,  image: "dryer.jpg",          description: "Electric dryer with moisture sensor." },
+    { id: 10, name: "Black+Decker Iron",             category: "laundry",       price: 6500,   image: "iron.jpg",           description: "Steam iron with non-stick soleplate." },
+    { id: 11, name: "Whirlpool Washer",              category: "laundry",       price: 110000, image: "whirlpool.jpg",      description: "Heavy-duty top-load washer." },
+    { id: 12, name: "Dyson Vacuum Cleaner",          category: "cleaning",      price: 85000,  image: "vacuum.jpg",         description: "Lightweight cordless stick vacuum." },
+    { id: 13, name: "iRobot Roomba",                 category: "cleaning",      price: 120000, image: "roomba.jpg",         description: "Wi-Fi connected robot vacuum." },
+    { id: 14, name: "Karcher Pressure Washer",       category: "cleaning",      price: 55000,  image: "pressurewasher.jpg", description: "High-power electric pressure washer." },
+    { id: 15, name: "Black+Decker Dustbuster",       category: "cleaning",      price: 9500,   image: "dustbuster.jpg",     description: "Handheld cordless vacuum for quick cleanups." },
+    { id: 16, name: "Samsung 55 Smart TV",           category: "entertainment", price: 145000, image: "tv.jpg",             description: "55-inch 4K UHD Smart TV." },
+    { id: 17, name: "JBL Speaker",                   category: "entertainment", price: 35000,  image: "jbl.jpg",            description: "Portable waterproof Bluetooth speaker." },
+    { id: 18, name: "LG 43 Smart TV",                category: "entertainment", price: 95000,  image: "lgtv.jpg",           description: "43-inch Full HD Smart TV." },
+    { id: 19, name: "Sony Soundbar",                 category: "entertainment", price: 42000,  image: "soundbar.jpg",       description: "2.1 channel audio soundbar with subwoofer." },
+    { id: 20, name: "Nintendo Switch Console",       category: "entertainment", price: 78000,  image: "nintendo.jpg",       description: "Hybrid home/portable gaming console." },
+    { id: 21, name: "PlayStation 5 Console",         category: "entertainment", price: 145000, image: "ps5.jpg",            description: "Next-gen gaming console with ultra-high speed SSD." },
+    { id: 22, name: "Anker Projector",               category: "entertainment", price: 65000,  image: "anker.jpg",          description: "Portable smart mini-projector." },
+    { id: 23, name: "DeWalt Power Drill",            category: "tools",         price: 18000,  image: "drill.jpg",          description: "20V MAX cordless compact drill." },
+    { id: 24, name: "Makita Circular Saw",           category: "tools",         price: 28000,  image: "saw.jpg",            description: "7-1/4 inch circular saw with electric brake." },
+    { id: 25, name: "Stanley Toolbox Set",           category: "tools",         price: 15000,  image: "toolbox.jpg",        description: "100-piece mechanics tool set." },
+    { id: 26, name: "IMALENT High Lumen Flashlight", category: "tools",         price: 2400,   image: "flashlight.jpg",     description: "Ultra-bright rechargeable flashlight." },
+    { id: 27, name: "Anker Solar Generator",         category: "tools",         price: 19500,  image: "solar.jpg",          description: "Portable power station for camping." },
+    { id: 28, name: "Ryobi Heat Gun",                category: "tools",         price: 11000,  image: "heatgun.jpg",        description: "18V cordless heat gun." }
 ];
+
+/** GP 2: An updated product list must be kept on localStorage, as AllProducts. */
+localStorage.setItem('AllProducts', JSON.stringify(products));
 
 /* 2b. Event Handling & Working event listener for page load */
 document.addEventListener('DOMContentLoaded', function() {
     updateCartIcon();
     setupMobileNav();
 
-    /* 2a. DOM Manipulation to update HTML via displayProducts */
     if (document.querySelector('#productgrid')) { 
         displayProducts(products); 
         
@@ -262,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     trn: trn,
                     password: pw,
                     dateOfRegistration: new Date().toLocaleString(),
-                    cart: {},
+                    cart: [], // Initialized as array for user-specific cart logic
                     invoices: []
                 };
 
@@ -315,7 +317,12 @@ document.addEventListener('DOMContentLoaded', function() {
             /*2d. Basic Interactivity / Logic Control structures for checkout completion*/
             if (valid) {
                 alert('Thank you for your order! It is now being processed.'); 
-                localStorage.removeItem('ippliance_cart'); 
+                var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
+                if (currentUser) {
+                    currentUser.cart = [];
+                    localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
+                    syncCartToDatabase(currentUser);
+                }
                 window.location.href='index.html';
             }
         });
@@ -331,11 +338,52 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 
+/** GP 2: Display the product list dynamically on the website. */
+function displayProducts(list) {
+    var grid = document.querySelector('#productgrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    list.forEach(item => {
+        grid.innerHTML += `
+            <div class="product-card">
+                <img src="../Assets/${item.image}" alt="${item.name}">
+                <h3>${item.name}</h3>
+                <p style="font-size: 0.8rem; color: #777; margin: 10px 0;">${item.description}</p>
+                <p class="price">J$${item.price.toLocaleString()}</p>
+                <button class="btn" onclick="addToCart(${item.id})">Add to Cart</button>
+            </div>`;
+    });
+}
 
-/* 2a. DOM Manipulation to dynamically update HTML using JS innerHTML */
+/** GP 2: When a user clicks the "Add to Cart" button, add the selected product to the user's shopping cart. */
+function addToCart(id) {
+    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
+    
+    if (!currentUser) {
+        alert("Please log in to add items to your cart.");
+        window.location.href = 'login.html';
+        return;
+    }
+
+    if (!Array.isArray(currentUser.cart)) currentUser.cart = [];
+
+    var product = products.find(p => p.id === id);
+    var existing = currentUser.cart.find(item => item.id === id);
+
+    if (existing) { existing.quantity += 1; }
+    else { currentUser.cart.push({...product, quantity: 1}); }
+
+    localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
+    syncCartToDatabase(currentUser);
+    updateCartIcon();
+    alert(product.name + ' added to your cart!');
+}
+
+/** GP 2: Shopping cart must include product details along with the taxes, discounts, subtotal and current total cost. */
 function displayCart() {
     var container = document.querySelector('#cart-container');
-    var cart = JSON.parse(localStorage.getItem('ippliance_cart')) || [];
+    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
+    var cart = (currentUser && currentUser.cart) ? currentUser.cart : [];
     if (!container) return;
     
     if (cart.length === 0) { 
@@ -363,7 +411,6 @@ function displayCart() {
                  </div>`;
     });
 
-    /* 2d. Basic Interactivity / Logic  calculations for discount and tax */
     let discount = (totalQty >= 3) ? (subtotal * 0.10) : 0;
     let taxableAmount = subtotal - discount;
     let tax = taxableAmount * 0.15;
@@ -385,7 +432,8 @@ function displayCart() {
 function displayCheckoutSummary() {
     var container = document.querySelector('#checkout-summary');
     var amtInput = document.getElementById('amount');
-    var cart = JSON.parse(localStorage.getItem('ippliance_cart')) || [];
+    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
+    var cart = (currentUser && currentUser.cart) ? currentUser.cart : [];
     if (!container) return;
 
     let subtotal = 0, totalQty = 0;
@@ -418,55 +466,33 @@ function displayCheckoutSummary() {
     }
 }
 
-function displayProducts(list) {
-    /* 2a. DOM Manipulation querySelector*/
-    var grid = document.querySelector('#productgrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    list.forEach(item => {
-        grid.innerHTML += `
-            <div class="product-card">
-                <img src="../Assets/${item.image}" alt="${item.name}">
-                <h3>${item.name}</h3>
-                <p class="price">J$${item.price.toLocaleString()}</p>
-                <button class="btn" onclick="addToCart(${item.id})">Add to Cart</button>
-            </div>`;
-    });
-}
-
-function addToCart(id) {
-    var cart = JSON.parse(localStorage.getItem('ippliance_cart')) || [];
-    var product = products.find(p => p.id === id);
-    var existing = cart.find(item => item.id === id);
-
-    /*2d. Basic Interactivity / Logic Control structures for cart count */
-    if (existing) { existing.quantity += 1; }
-    else { cart.push({...product, quantity: 1}); }
-
-    localStorage.setItem('ippliance_cart', JSON.stringify(cart));
-    updateCartIcon();
-    alert(product.name + ' added to cart!');
-}
-
 function removeFromCart(id) {
-    var cart = JSON.parse(localStorage.getItem('ippliance_cart')) || [];
-    cart = cart.filter(item => item.id !== id);
-    localStorage.setItem('ippliance_cart', JSON.stringify(cart));
+    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
+    if (!currentUser) return;
+    
+    currentUser.cart = currentUser.cart.filter(item => item.id !== id);
+    localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
+    syncCartToDatabase(currentUser);
     displayCart();
     updateCartIcon();
 }
 
 function clearCart() {
-    localStorage.removeItem('ippliance_cart');
+    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
+    if (!currentUser) return;
+    
+    currentUser.cart = [];
+    localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
+    syncCartToDatabase(currentUser);
     displayCart();
     updateCartIcon();
 }
 
 function updateCartIcon() {
-    var cart = JSON.parse(localStorage.getItem('ippliance_cart')) || [];
+    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
+    var cart = (currentUser && currentUser.cart) ? currentUser.cart : [];
     var count = cart.reduce((sum, item) => sum + item.quantity, 0);
     
-    /*2a. DOM Manipulation to dynamically update HTML with nav items */
     var navLinks = document.querySelectorAll('nav a');
     navLinks.forEach(link => {
         if (link.getAttribute('href') === 'cart.html' || link.textContent.toLowerCase().includes('cart')) {
@@ -483,5 +509,14 @@ function setupMobileNav() {
         menuBtn.addEventListener('click', function() {
             nav.classList.toggle('active');
         });
+    }
+}
+
+function syncCartToDatabase(userObj) {
+    var registrationData = JSON.parse(localStorage.getItem('RegistrationData')) || [];
+    var index = registrationData.findIndex(function(u) { return u.trn === userObj.trn; });
+    if (index !== -1) {
+        registrationData[index].cart = userObj.cart;
+        localStorage.setItem('RegistrationData', JSON.stringify(registrationData));
     }
 }
