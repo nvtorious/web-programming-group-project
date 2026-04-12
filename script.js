@@ -58,14 +58,203 @@ function parseCurrentUser() {
     }
 }
 
+function getCartTotals(cart) {
+    var subtotal = 0;
+    var totalQty = 0;
+
+    cart.forEach(function(item) {
+        subtotal += item.price * item.quantity;
+        totalQty += item.quantity;
+    });
+
+    var discount = (totalQty >= 3) ? subtotal * 0.10 : 0;
+    var taxableAmount = subtotal - discount;
+    var tax = taxableAmount * 0.15;
+    var grandTotal = taxableAmount + tax;
+
+    return {
+        subtotal: subtotal,
+        totalQty: totalQty,
+        discount: discount,
+        taxableAmount: taxableAmount,
+        tax: tax,
+        grandTotal: grandTotal
+    };
+}
+
+function generateInvoiceNumber() {
+    return 'INV-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+}
+
+function generateInvoice(shippingInfo) {
+    var currentUser = parseCurrentUser();
+    if (!currentUser || !Array.isArray(currentUser.cart) || currentUser.cart.length === 0) return null;
+
+    var cart = currentUser.cart;
+    var totals = getCartTotals(cart);
+
+    var purchasedItems = cart.map(function(item) {
+        var itemSubtotal = item.price * item.quantity;
+        var itemDiscount = totals.discount > 0 ? itemSubtotal * 0.10 : 0;
+
+        return {
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            discount: itemDiscount,
+            lineSubtotal: itemSubtotal
+        };
+    });
+
+    var invoice = {
+        companyName: 'I-ppliance',
+        invoiceDate: new Date().toLocaleString(),
+        shippingInformation: shippingInfo,
+        invoiceNumber: generateInvoiceNumber(),
+        trn: currentUser.trn,
+        purchasedItems: purchasedItems,
+        taxes: totals.tax,
+        subtotal: totals.subtotal,
+        totalDiscount: totals.discount,
+        totalCost: totals.grandTotal
+    };
+
+    if (!Array.isArray(currentUser.invoices)) {
+        currentUser.invoices = [];
+    }
+
+    currentUser.invoices.push(invoice);
+    localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
+
+    var registrationData = parseRegistrationData();
+    var index = registrationData.findIndex(function(user) {
+        return normalizeTrn(user.trn) === normalizeTrn(currentUser.trn);
+    });
+
+    if (index !== -1) {
+        if (!Array.isArray(registrationData[index].invoices)) {
+            registrationData[index].invoices = [];
+        }
+        registrationData[index].invoices.push(invoice);
+        registrationData[index].cart = [];
+        localStorage.setItem('RegistrationData', JSON.stringify(registrationData));
+    }
+
+    var allInvoices = [];
+    try {
+        allInvoices = JSON.parse(localStorage.getItem('AllInvoices') || '[]') || [];
+    } catch (e) {
+        allInvoices = [];
+    }
+
+    allInvoices.push(invoice);
+    localStorage.setItem('AllInvoices', JSON.stringify(allInvoices));
+    localStorage.setItem('LatestInvoice', JSON.stringify(invoice));
+
+    return invoice;
+}
+
+function displayInvoice() {
+    var container = document.getElementById('invoice-container');
+    if (!container) return;
+
+    var invoice;
+    try {
+        invoice = JSON.parse(localStorage.getItem('LatestInvoice') || 'null');
+    } catch (e) {
+        invoice = null;
+    }
+
+    if (!invoice) {
+        container.innerHTML = '<div class="empty-cart"><h3>No invoice found</h3><p>Please complete checkout first.</p></div>';
+        return;
+    }
+
+    var itemsHTML = invoice.purchasedItems.map(function(item) {
+        return `
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.quantity}</td>
+                <td>J$${item.price.toLocaleString()}</td>
+                <td>J$${item.discount.toLocaleString()}</td>
+                <td>J$${item.lineSubtotal.toLocaleString()}</td>
+            </tr>
+        `;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="cart-summary-card" style="max-width: 1000px; margin: 40px auto;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;">
+                <div>
+                    <h2 style="margin-bottom:8px;">${invoice.companyName}</h2>
+                    <p><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</p>
+                    <p><strong>Date of Invoice:</strong> ${invoice.invoiceDate}</p>
+                    <p><strong>TRN:</strong> ${invoice.trn}</p>
+                </div>
+                <div style="text-align:left;">
+                    <h3 style="margin-bottom:8px;">Shipping Information</h3>
+                    <p>${invoice.shippingInformation.firstName} ${invoice.shippingInformation.lastName}</p>
+                    <p>${invoice.shippingInformation.email}</p>
+                    <p>${invoice.shippingInformation.phone}</p>
+                    <p>${invoice.shippingInformation.address}</p>
+                    <p>${invoice.shippingInformation.parish}</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top:30px;">Purchased Items</h3>
+            <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+                    <thead>
+                        <tr style="background:#222; color:#fff;">
+                            <th style="padding:12px; border:1px solid #ddd;">Name</th>
+                            <th style="padding:12px; border:1px solid #ddd;">Quantity</th>
+                            <th style="padding:12px; border:1px solid #ddd;">Price</th>
+                            <th style="padding:12px; border:1px solid #ddd;">Discount</th>
+                            <th style="padding:12px; border:1px solid #ddd;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHTML}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top:25px; max-width:400px; margin-left:auto;">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>J$${invoice.subtotal.toLocaleString()}</span>
+                </div>
+                <div class="summary-row discount">
+                    <span>Total Discount</span>
+                    <span>- J$${invoice.totalDiscount.toLocaleString()}</span>
+                </div>
+                <div class="summary-row tax">
+                    <span>Taxes</span>
+                    <span>J$${invoice.taxes.toLocaleString()}</span>
+                </div>
+                <hr class="summary-divider">
+                <div class="summary-row grand-total">
+                    <span>Total Cost</span>
+                    <span>J$${invoice.totalCost.toLocaleString()}</span>
+                </div>
+            </div>
+
+            <div style="margin-top:25px; display:flex; gap:12px; flex-wrap:wrap;">
+                <button type="button" class="btn" onclick="window.print()">Print Invoice</button>
+                <a href="index.html" class="btn btn-outline">Continue Shopping</a>
+            </div>
+        </div>
+    `;
+}
+
 /* 2b. Event Handling & Working event listener for page load */
 document.addEventListener('DOMContentLoaded', function() {
     updateCartIcon();
     setupMobileNav();
 
-    if (document.querySelector('#productgrid')) { 
-        displayProducts(products); 
-        
+    if (document.querySelector('#productgrid')) {
+        displayProducts(products);
+
         /* 2d. Basic Interactivity & Logic Control structures for Promo Alert */
         if (!localStorage.getItem('ippliance_promo_seen')) {
             alert("Special Deal: Get 10% off your subtotal when you purchase 3 or more items!");
@@ -75,19 +264,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (document.querySelector('#cart-container')) { displayCart(); }
     if (document.querySelector('#checkout-summary')) { displayCheckoutSummary(); }
+    if (document.getElementById('invoice-container')) { displayInvoice(); }
 
     var categoryBtns = document.querySelectorAll('.category-btn');
-    categoryBtns.forEach(btn => {
+    categoryBtns.forEach(function(btn) {
         /* 2b. Event Handling listener for buttons */
         btn.addEventListener('click', function() {
             var category = this.getAttribute('data-category');
-            
+
             /* 2a. DOM Manipulation updating CSS classes */
-            categoryBtns.forEach(b => b.classList.remove('active'));
+            categoryBtns.forEach(function(b) { b.classList.remove('active'); });
             this.classList.add('active');
-            
+
             /* 2d. Basic Interactivity & Logic using filter logic on arrays*/
-            var filtered = (category === 'all') ? products : products.filter(p => p.category === category);
+            var filtered = (category === 'all') ? products : products.filter(function(p) { return p.category === category; });
             displayProducts(filtered);
         });
     });
@@ -291,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     trn: trn,
                     password: pw,
                     dateOfRegistration: new Date().toLocaleString(),
-                    cart: [], // Initialized as array for user-specific cart logic
+                    cart: [],
                     invoices: []
                 };
 
@@ -317,12 +507,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /*2a. DOM Manipulation*/
+    /* Checkout confirm button with invoice generation */
     var confBtn = document.getElementById('confirm-order-btn');
     if (confBtn) {
         confBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            
+
             var fn = document.getElementById('firstname') ? document.getElementById('firstname').value.trim() : '';
             var ln = document.getElementById('lastname') ? document.getElementById('lastname').value.trim() : '';
             var em = document.getElementById('email') ? document.getElementById('email').value.trim() : '';
@@ -331,38 +521,75 @@ document.addEventListener('DOMContentLoaded', function() {
             var pa = document.getElementById('parish') ? document.getElementById('parish').value : '';
 
             var valid = true;
-            function toggleChkErr(id, show) { var el = document.getElementById(id); if (el) el.style.display = show ? 'block' : 'none'; }
+            function toggleChkErr(id, show) {
+                var el = document.getElementById(id);
+                if (el) el.style.display = show ? 'block' : 'none';
+            }
 
-            /* 2c. Form Validation / Input Handling for Checkout field validations */
-            if (document.getElementById('firstname') && fn==='') { toggleChkErr('user-fname-error', true); valid=false; } else { toggleChkErr('user-fname-error', false); }
-            if (document.getElementById('lastname') && ln==='') { toggleChkErr('user-lname-error', true); valid=false; } else { toggleChkErr('user-lname-error', false); }
-            if (document.getElementById('email') && (em==='' || !em.includes('@'))) { toggleChkErr('user-email-error', true); valid=false; } else { toggleChkErr('user-email-error', false); }
-            if (document.getElementById('phone') && ph==='') { toggleChkErr('user-phone-error', true); valid=false; } else { toggleChkErr('user-phone-error', false); }
-            if (document.getElementById('address') && ad==='') { toggleChkErr('user-address-error', true); valid=false; } else { toggleChkErr('user-address-error', false); }
-            if (document.getElementById('parish') && pa==='') { toggleChkErr('user-parish-error', true); valid=false; } else { toggleChkErr('user-parish-error', false); }
+            if (document.getElementById('firstname') && fn === '') { toggleChkErr('user-fname-error', true); valid = false; } else { toggleChkErr('user-fname-error', false); }
+            if (document.getElementById('lastname') && ln === '') { toggleChkErr('user-lname-error', true); valid = false; } else { toggleChkErr('user-lname-error', false); }
+            if (document.getElementById('email') && (em === '' || !em.includes('@'))) { toggleChkErr('user-email-error', true); valid = false; } else { toggleChkErr('user-email-error', false); }
+            if (document.getElementById('phone') && ph === '') { toggleChkErr('user-phone-error', true); valid = false; } else { toggleChkErr('user-phone-error', false); }
+            if (document.getElementById('address') && ad === '') { toggleChkErr('user-address-error', true); valid = false; } else { toggleChkErr('user-address-error', false); }
+            if (document.getElementById('parish') && pa === '') { toggleChkErr('user-parish-error', true); valid = false; } else { toggleChkErr('user-parish-error', false); }
 
-            /*2d. Basic Interactivity / Logic Control structures for checkout completion*/
+            var currentUser = parseCurrentUser();
+            if (!currentUser || !Array.isArray(currentUser.cart) || currentUser.cart.length === 0) {
+                alert('Your cart is empty.');
+                return;
+            }
+
             if (valid) {
-                alert('Thank you for your order! It is now being processed.'); 
-                var currentUser = parseCurrentUser();
-                if (currentUser) {
+                var shippingInfo = {
+                    firstName: fn,
+                    lastName: ln,
+                    email: em,
+                    phone: ph,
+                    address: ad,
+                    parish: pa
+                };
+
+                var invoice = generateInvoice(shippingInfo);
+
+                if (invoice) {
+                    currentUser = parseCurrentUser();
                     currentUser.cart = [];
                     localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
                     syncCartToDatabase(currentUser);
+
+                    alert('Thank you for your order! Your invoice has been sent to your email.');
+                    window.location.href = 'invoice.html';
+                } else {
+                    alert('Unable to generate invoice. Please try again.');
                 }
-                window.location.href='index.html';
             }
         });
     }
-    
-    if (document.getElementById('cancel-btn')) document.getElementById('cancel-btn').onclick = function(e) { e.preventDefault(); window.location.href='cart.html'; };
-    if (document.getElementById('close-btn')) document.getElementById('close-btn').onclick = function(e) { e.preventDefault(); window.location.href='index.html'; };
-    if (document.getElementById('clear-btn')) document.getElementById('clear-btn').onclick = function(e) { 
-        e.preventDefault(); 
-        var form = document.getElementById('checkout-form');
-        if (form) form.reset();
-        document.querySelectorAll('.error-msg').forEach(msg => msg.style.display = 'none');
-    };
+
+    if (document.getElementById('cancel-btn')) {
+        document.getElementById('cancel-btn').onclick = function(e) {
+            e.preventDefault();
+            window.location.href = 'cart.html';
+        };
+    }
+
+    if (document.getElementById('close-btn')) {
+        document.getElementById('close-btn').onclick = function(e) {
+            e.preventDefault();
+            window.location.href = 'index.html';
+        };
+    }
+
+    if (document.getElementById('clear-btn')) {
+        document.getElementById('clear-btn').onclick = function(e) {
+            e.preventDefault();
+            var form = document.getElementById('checkout-form');
+            if (form) form.reset();
+            document.querySelectorAll('.error-msg').forEach(function(msg) {
+                msg.style.display = 'none';
+            });
+        };
+    }
 });
 
 /** GP 2: Display the product list dynamically on the website. */
@@ -370,7 +597,7 @@ function displayProducts(list) {
     var grid = document.querySelector('#productgrid');
     if (!grid) return;
     grid.innerHTML = '';
-    list.forEach(item => {
+    list.forEach(function(item) {
         grid.innerHTML += `
             <div class="product-card">
                 <img src="../Assets/${item.image}" alt="${item.name}">
@@ -394,13 +621,16 @@ function addToCart(id) {
 
     if (!Array.isArray(currentUser.cart)) currentUser.cart = [];
 
-    var product = products.find(p => p.id === id);
+    var product = products.find(function(p) { return p.id === id; });
     if (!product) return;
 
-    var existing = currentUser.cart.find(item => item.id === id);
+    var existing = currentUser.cart.find(function(item) { return item.id === id; });
 
-    if (existing) { existing.quantity += 1; }
-    else { currentUser.cart.push({...product, quantity: 1}); }
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        currentUser.cart.push({ ...product, quantity: 1 });
+    }
 
     localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
     syncCartToDatabase(currentUser);
@@ -430,46 +660,37 @@ function displayCart() {
         return;
     }
 
-    var subtotal = 0, totalQty = 0;
-    cart.forEach(function(item) {
-        subtotal += item.price * item.quantity;
-        totalQty += item.quantity;
-    });
-
-    var discount = (totalQty >= 3) ? subtotal * 0.10 : 0;
-    var taxableAmount = subtotal - discount;
-    var tax = taxableAmount * 0.15;
-    var grandTotal = taxableAmount + tax;
+    var totals = getCartTotals(cart);
 
     var rowsHTML = cart.map(function(item) {
         var itemSub = item.price * item.quantity;
         return `
-                <div class="cart-row">
-                    <img src="../Assets/${item.image}" alt="${item.name}">
-                    <div class="item-info">
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-price">J$${item.price.toLocaleString()} each</div>
+            <div class="cart-row">
+                <img src="../Assets/${item.image}" alt="${item.name}">
+                <div class="item-info">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-price">J$${item.price.toLocaleString()} each</div>
+                </div>
+                <div class="cart-col-center">
+                    <div class="qty-controls">
+                        <button type="button" class="qty-btn" onclick="changeQty(${item.id}, -1)">&#8722;</button>
+                        <span class="qty-display">${item.quantity}</span>
+                        <button type="button" class="qty-btn" onclick="changeQty(${item.id}, 1)">&#43;</button>
                     </div>
-                    <div class="cart-col-center">
-                        <div class="qty-controls">
-                            <button type="button" class="qty-btn" onclick="changeQty(${item.id}, -1)">&#8722;</button>
-                            <span class="qty-display">${item.quantity}</span>
-                            <button type="button" class="qty-btn" onclick="changeQty(${item.id}, 1)">&#43;</button>
-                        </div>
-                    </div>
-                    <div class="cart-col-center item-subtotal">J$${itemSub.toLocaleString()}</div>
-                    <div class="cart-col-center">
-                        <span style="font-size:0.8rem;">${discount > 0 ? '<span style="color:#2e9e5b;font-weight:600;">−10%</span>' : '—'}</span>
-                    </div>
-                    <div>
-                        <button type="button" class="remove-item-btn" onclick="removeFromCart(${item.id})">✕</button>
-                    </div>
-                </div>`;
+                </div>
+                <div class="cart-col-center item-subtotal">J$${itemSub.toLocaleString()}</div>
+                <div class="cart-col-center">
+                    <span style="font-size:0.8rem;">${totals.discount > 0 ? '<span style="color:#2e9e5b;font-weight:600;">−10%</span>' : '—'}</span>
+                </div>
+                <div>
+                    <button type="button" class="remove-item-btn" onclick="removeFromCart(${item.id})">✕</button>
+                </div>
+            </div>`;
     }).join('');
 
-    var itemsLeft = Math.max(0, 3 - totalQty);
-    var barPercent = Math.min(100, Math.round((totalQty / 3) * 100));
-    var promoHTML = discount > 0
+    var itemsLeft = Math.max(0, 3 - totals.totalQty);
+    var barPercent = Math.min(100, Math.round((totals.totalQty / 3) * 100));
+    var promoHTML = totals.discount > 0
         ? '<span class="promo-badge">✔ 10% discount applied!</span>'
         : `<div class="promo-progress">
                <div class="promo-progress-label">Add ${itemsLeft} more item${itemsLeft !== 1 ? 's' : ''} to unlock a 10% discount!</div>
@@ -477,52 +698,52 @@ function displayCart() {
            </div>`;
 
     container.innerHTML = `
-                <div class="cart-items-box">
-                    <div class="cart-items-header">
-                        <span>Item</span>
-                        <span></span>
-                        <span>Quantity</span>
-                        <span>Subtotal</span>
-                        <span>Discount</span>
-                        <span>Remove</span>
-                    </div>
-                    ${rowsHTML}
-                </div>
+        <div class="cart-items-box">
+            <div class="cart-items-header">
+                <span>Item</span>
+                <span></span>
+                <span>Quantity</span>
+                <span>Subtotal</span>
+                <span>Discount</span>
+                <span>Remove</span>
+            </div>
+            ${rowsHTML}
+        </div>
 
-                <div class="cart-actions">
-                    <div class="cart-actions-left">
-                        <a href="index.html" class="btn btn-outline">&#8592; Continue Shopping</a>
-                        <button type="button" class="btn btn-danger" id="clear-cart-btn" onclick="clearCart()">Clear All</button>
-                        <button type="button" class="btn btn-outline" onclick="closeCartView()">Close</button>
-                    </div>
-                    <div class="cart-actions-right">
-                        <a href="checkout.html" class="btn">Check Out</a>
-                    </div>
-                </div>
+        <div class="cart-actions">
+            <div class="cart-actions-left">
+                <a href="index.html" class="btn btn-outline">&#8592; Continue Shopping</a>
+                <button type="button" class="btn btn-danger" id="clear-cart-btn" onclick="clearCart()">Clear All</button>
+                <button type="button" class="btn btn-outline" onclick="closeCartView()">Close</button>
+            </div>
+            <div class="cart-actions-right">
+                <a href="checkout.html" class="btn">Check Out</a>
+            </div>
+        </div>
 
-                <div class="cart-summary-card">
-                    <h3>Order Summary</h3>
-                    ${promoHTML}
-                    <div class="summary-row">
-                        <span>Subtotal (${totalQty} item${totalQty !== 1 ? 's' : ''})</span>
-                        <span>J$${subtotal.toLocaleString()}</span>
-                    </div>
-                    <div class="summary-row discount">
-                        <span>Discount (10% for 3+ items)</span>
-                        <span>− J$${discount.toLocaleString()}</span>
-                    </div>
-                    <div class="summary-row tax">
-                        <span>GCT (15%)</span>
-                        <span>J$${tax.toLocaleString()}</span>
-                    </div>
-                    <hr class="summary-divider">
-                    <div class="summary-row grand-total">
-                        <span>Grand Total</span>
-                        <span>J$${grandTotal.toLocaleString()}</span>
-                    </div>
-                    <a href="checkout.html" class="btn summary-checkout-btn">Check Out</a>
-                    <a href="index.html" class="summary-continue-link">← Continue Shopping</a>
-                </div>`;
+        <div class="cart-summary-card">
+            <h3>Order Summary</h3>
+            ${promoHTML}
+            <div class="summary-row">
+                <span>Subtotal (${totals.totalQty} item${totals.totalQty !== 1 ? 's' : ''})</span>
+                <span>J$${totals.subtotal.toLocaleString()}</span>
+            </div>
+            <div class="summary-row discount">
+                <span>Discount (10% for 3+ items)</span>
+                <span>− J$${totals.discount.toLocaleString()}</span>
+            </div>
+            <div class="summary-row tax">
+                <span>GCT (15%)</span>
+                <span>J$${totals.tax.toLocaleString()}</span>
+            </div>
+            <hr class="summary-divider">
+            <div class="summary-row grand-total">
+                <span>Grand Total</span>
+                <span>J$${totals.grandTotal.toLocaleString()}</span>
+            </div>
+            <a href="checkout.html" class="btn summary-checkout-btn">Check Out</a>
+            <a href="index.html" class="summary-continue-link">← Continue Shopping</a>
+        </div>`;
 }
 
 function closeCartView() {
@@ -551,33 +772,27 @@ function displayCheckoutSummary() {
     var cart = (currentUser && Array.isArray(currentUser.cart)) ? currentUser.cart : [];
     if (!container) return;
 
-    let subtotal = 0, totalQty = 0;
-    let html = '<h3>Order Summary</h3><ul style="list-style:none; padding:0; margin-top:10px;">';
-    
-    cart.forEach(item => { 
-        subtotal += (item.price * item.quantity); 
-        totalQty += item.quantity; 
+    var totals = getCartTotals(cart);
+
+    var html = '<h3>Order Summary</h3><ul style="list-style:none; padding:0; margin-top:10px;">';
+
+    cart.forEach(function(item) {
         html += `<li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>${item.name}</strong> (x${item.quantity}) <span style="float:right;">J$${(item.price * item.quantity).toLocaleString()}</span></li>`;
     });
 
-    let discount = (totalQty >= 3) ? (subtotal * 0.10) : 0;
-    let taxableAmount = subtotal - discount;
-    let tax = taxableAmount * 0.15;
-    let grand = taxableAmount + tax;
-
     html += `</ul>
-            <div style="margin-top: 15px;">
-                <p>Sub-total: <span style="float:right;">J$${subtotal.toLocaleString()}</span></p>
-                <p style="color:#d9534f;">Discount (10%): <span style="float:right;">- J$${discount.toLocaleString()}</span></p>
-                <p>GCT (15%): <span style="float:right;">J$${tax.toLocaleString()}</span></p>
-                <hr style="margin: 10px 0; border: none; border-top: 1px solid #ccc;">
-                <h4>Amount Due: <span style="float:right;">J$${grand.toLocaleString()}</span></h4>
-            </div>`;
-            
+        <div style="margin-top: 15px;">
+            <p>Sub-total: <span style="float:right;">J$${totals.subtotal.toLocaleString()}</span></p>
+            <p style="color:#d9534f;">Discount (10%): <span style="float:right;">- J$${totals.discount.toLocaleString()}</span></p>
+            <p>GCT (15%): <span style="float:right;">J$${totals.tax.toLocaleString()}</span></p>
+            <hr style="margin: 10px 0; border: none; border-top: 1px solid #ccc;">
+            <h4>Amount Due: <span style="float:right;">J$${totals.grandTotal.toLocaleString()}</span></h4>
+        </div>`;
+
     container.innerHTML = html;
-    
+
     if (amtInput) {
-        amtInput.value = "J$" + grand.toLocaleString();
+        amtInput.value = 'J$' + totals.grandTotal.toLocaleString();
     }
 }
 
@@ -586,7 +801,7 @@ function removeFromCart(id) {
     if (!currentUser) return;
     if (!Array.isArray(currentUser.cart)) currentUser.cart = [];
 
-    currentUser.cart = currentUser.cart.filter(item => item.id !== id);
+    currentUser.cart = currentUser.cart.filter(function(item) { return item.id !== id; });
     localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
     syncCartToDatabase(currentUser);
     displayCart();
@@ -607,13 +822,16 @@ function clearCart() {
 function updateCartIcon() {
     var currentUser = parseCurrentUser();
     var cart = (currentUser && Array.isArray(currentUser.cart)) ? currentUser.cart : [];
-    var count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    
+    var count = cart.reduce(function(sum, item) { return sum + item.quantity; }, 0);
+
     var navLinks = document.querySelectorAll('nav a');
-    navLinks.forEach(link => {
+    navLinks.forEach(function(link) {
         if (link.getAttribute('href') === 'cart.html' || link.textContent.toLowerCase().includes('cart')) {
-            if (count > 0) { link.innerText = 'Cart (' + count + ')'; } 
-            else { link.innerText = 'Cart'; }
+            if (count > 0) {
+                link.innerText = 'Cart (' + count + ')';
+            } else {
+                link.innerText = 'Cart';
+            }
         }
     });
 }
@@ -630,9 +848,15 @@ function setupMobileNav() {
 
 function syncCartToDatabase(userObj) {
     var registrationData = parseRegistrationData();
-    var index = registrationData.findIndex(function(u) { return normalizeTrn(u.trn) === normalizeTrn(userObj.trn); });
+    var index = registrationData.findIndex(function(u) {
+        return normalizeTrn(u.trn) === normalizeTrn(userObj.trn);
+    });
+
     if (index !== -1) {
         registrationData[index].cart = userObj.cart;
+        if (Array.isArray(userObj.invoices)) {
+            registrationData[index].invoices = userObj.invoices;
+        }
         localStorage.setItem('RegistrationData', JSON.stringify(registrationData));
     }
 }
