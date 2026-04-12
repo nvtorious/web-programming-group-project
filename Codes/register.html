@@ -35,16 +35,19 @@
           <div class="form-group">
             <label for="firstname">First Name</label>
             <input type="text" id="firstname" placeholder="Enter your first name" required />
+            <span class="error-msg" id="user-fname-error" style="display:none;">First Name is required</span>
           </div>
 
           <div class="form-group">
             <label for="lastname">Last Name</label>
             <input type="text" id="lastname" placeholder="Enter your last name" required />
+            <span class="error-msg" id="user-lname-error" style="display:none;">Last Name is required</span>
           </div>
 
           <div class="form-group">
             <label for="dob">Date of Birth</label>
             <input type="date" id="dob" required />
+            <span class="error-msg" id="user-dob-error" style="display:none;">Date of Birth is required</span>
           </div>
 
           <div class="form-group">
@@ -56,16 +59,19 @@
               <option value="Other">Other</option>
               <option value="Prefer not to say">Prefer not to say</option>
             </select>
+            <span class="error-msg" id="user-gender-error" style="display:none;">Gender is required</span>
           </div>
 
           <div class="form-group">
             <label for="phone">Phone Number</label>
             <input type="tel" id="phone" placeholder="e.g. 876-123-4567" required />
+            <span class="error-msg" id="user-phone-error" style="display:none;">Phone Number is required</span>
           </div>
 
           <div class="form-group">
             <label for="email">Email</label>
             <input type="email" id="email" placeholder="Enter your email" required />
+            <span class="error-msg" id="user-email-error" style="display:none;">Email is required</span>
           </div>
 
           <div class="form-group">
@@ -77,6 +83,7 @@
               maxlength="11"
               required
             />
+            <span class="error-msg" id="user-trn-error" style="display:none;">TRN is required</span>
           </div>
 
           <div class="form-group">
@@ -88,6 +95,7 @@
               minlength="8"
               required
             />
+            <span class="error-msg" id="user-password-error" style="display:none;">Password is required</span>
           </div>
 
           <div class="form-group">
@@ -99,6 +107,7 @@
               minlength="8"
               required
             />
+            <span class="error-msg" id="user-cpassword-error" style="display:none;">Confirm Password is required</span>
           </div>
 
           <p id="register-message"></p>

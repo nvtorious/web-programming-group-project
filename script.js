@@ -33,6 +33,31 @@ var products = [
 /** GP 2: An updated product list must be kept on localStorage, as AllProducts. */
 localStorage.setItem('AllProducts', JSON.stringify(products));
 
+/** Normalize TRN to 000-000-000 so registration and login match even if dashes differ. */
+function normalizeTrn(trn) {
+    var d = String(trn || '').replace(/\D/g, '');
+    if (d.length !== 9) return String(trn || '').trim();
+    return d.slice(0, 3) + '-' + d.slice(3, 6) + '-' + d.slice(6, 9);
+}
+
+function parseRegistrationData() {
+    try {
+        return JSON.parse(localStorage.getItem('RegistrationData') || '[]') || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function parseCurrentUser() {
+    try {
+        var raw = localStorage.getItem('CurrentUser');
+        if (!raw) return null;
+        return JSON.parse(raw);
+    } catch (e) {
+        return null;
+    }
+}
+
 /* 2b. Event Handling & Working event listener for page load */
 document.addEventListener('DOMContentLoaded', function() {
     updateCartIcon();
@@ -102,10 +127,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            var registrationData = JSON.parse(localStorage.getItem('RegistrationData')) || [];
+            var registrationData = parseRegistrationData();
+            var trnKey = normalizeTrn(trnIn);
 
             var foundUser = registrationData.find(function(user) {
-                return user.trn === trnIn && user.password === passIn;
+                return normalizeTrn(user.trn) === trnKey && user.password === passIn;
             });
 
             if (foundUser) {
@@ -158,7 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return age;
             }
 
-            var trnPattern = /^\d{3}-\d{3}-\d{3}$/;
             var phonePattern = /^[0-9\-\+\(\)\s]{7,15}$/;
 
             if (fn === '') {
@@ -212,13 +237,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 toggleErr('user-email-error', false);
             }
 
+            var trnDigits = trn.replace(/\D/g, '');
             if (trn === '') {
                 toggleErr('user-trn-error', true, 'TRN is required');
                 valid = false;
-            } else if (!trnPattern.test(trn)) {
-                toggleErr('user-trn-error', true, 'TRN must be in the format 000-000-000');
+            } else if (trnDigits.length !== 9) {
+                toggleErr('user-trn-error', true, 'TRN must be 9 digits (e.g. 000-000-000)');
                 valid = false;
             } else {
+                trn = normalizeTrn(trn);
                 toggleErr('user-trn-error', false);
             }
 
@@ -242,10 +269,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 toggleErr('user-cpassword-error', false);
             }
 
-            var registrationData = JSON.parse(localStorage.getItem('RegistrationData')) || [];
+            var registrationData = parseRegistrationData();
 
             var trnExists = registrationData.some(function(user) {
-                return user.trn === trn;
+                return normalizeTrn(user.trn) === trn;
             });
 
             if (valid && trnExists) {
@@ -317,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
             /*2d. Basic Interactivity / Logic Control structures for checkout completion*/
             if (valid) {
                 alert('Thank you for your order! It is now being processed.'); 
-                var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
+                var currentUser = parseCurrentUser();
                 if (currentUser) {
                     currentUser.cart = [];
                     localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
@@ -357,8 +384,8 @@ function displayProducts(list) {
 
 /** GP 2: When a user clicks the "Add to Cart" button, add the selected product to the user's shopping cart. */
 function addToCart(id) {
-    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
-    
+    var currentUser = parseCurrentUser();
+
     if (!currentUser) {
         alert("Please log in to add items to your cart.");
         window.location.href = 'login.html';
@@ -368,6 +395,8 @@ function addToCart(id) {
     if (!Array.isArray(currentUser.cart)) currentUser.cart = [];
 
     var product = products.find(p => p.id === id);
+    if (!product) return;
+
     var existing = currentUser.cart.find(item => item.id === id);
 
     if (existing) { existing.quantity += 1; }
@@ -382,58 +411,144 @@ function addToCart(id) {
 /** GP 2: Shopping cart must include product details along with the taxes, discounts, subtotal and current total cost. */
 function displayCart() {
     var container = document.querySelector('#cart-container');
-    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
-    var cart = (currentUser && currentUser.cart) ? currentUser.cart : [];
     if (!container) return;
-    
-    if (cart.length === 0) { 
-        container.innerHTML = '<div style="text-align: center; padding: 40px;"><h3>Your cart is empty.</h3><br><a href="index.html" class="btn" style="width:auto; display:inline-block; padding:10px 20px;">Browse Products</a></div>'; 
-        return; 
+
+    var currentUser = parseCurrentUser();
+    var cart = (currentUser && Array.isArray(currentUser.cart)) ? currentUser.cart : [];
+
+    if (cart.length === 0) {
+        container.innerHTML = `
+            <div class="empty-cart">
+                <div class="empty-cart-icon">🛒</div>
+                <h3>Your cart is empty</h3>
+                <p>Looks like you haven't added anything yet.</p>
+                <p style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:8px;">
+                    <a href="index.html" class="btn">Browse Products</a>
+                    <button type="button" class="btn btn-outline" onclick="closeCartView()">Close</button>
+                </p>
+            </div>`;
+        return;
     }
 
-    let subtotal = 0, totalQty = 0;
-    let html = '<h2 style="margin-bottom: 20px;">Shopping Cart</h2>';
-
-    cart.forEach(item => {
-        let itemSub = item.price * item.quantity;
-        subtotal += itemSub; totalQty += item.quantity;
-        
-        html += `<div class="cart-item" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee;">
-                    <img src="../Assets/${item.image}" class="cart-img" style="width: 80px; border-radius: 8px;">
-                    <div style="flex: 1; margin-left: 20px; text-align: left;">
-                        <h4 style="margin-bottom: 5px;">${item.name}</h4>
-                        <p>J$${item.price.toLocaleString()} x ${item.quantity}</p>
-                    </div>
-                    <div style="text-align: right; margin-right: 20px;">
-                        <p><strong>J$${itemSub.toLocaleString()}</strong></p>
-                    </div>
-                    <button class="btn remove-btn" style="width:auto; padding:8px 15px; margin-top:0;" onclick="removeFromCart(${item.id})">Remove</button>
-                 </div>`;
+    var subtotal = 0, totalQty = 0;
+    cart.forEach(function(item) {
+        subtotal += item.price * item.quantity;
+        totalQty += item.quantity;
     });
 
-    let discount = (totalQty >= 3) ? (subtotal * 0.10) : 0;
-    let taxableAmount = subtotal - discount;
-    let tax = taxableAmount * 0.15;
-    let grand = taxableAmount + tax;
+    var discount = (totalQty >= 3) ? subtotal * 0.10 : 0;
+    var taxableAmount = subtotal - discount;
+    var tax = taxableAmount * 0.15;
+    var grandTotal = taxableAmount + tax;
 
-    html += `<div class="summary" style="background:#f9f9f9; padding:25px; margin-top:20px; border-radius:12px; text-align: right;">
-                <p style="margin-bottom: 8px;">Sub-total: J$${subtotal.toLocaleString()}</p>
-                <p style="color:var(--error-red); margin-bottom: 8px;">Discount (10% for 3+): -J$${discount.toLocaleString()}</p>
-                <p style="margin-bottom: 15px;">GCT (15%): J$${tax.toLocaleString()}</p>
-                <hr style="border:none; border-top:1px solid #ddd; margin-bottom: 15px;">
-                <h3 style="margin-bottom: 20px; font-size: 1.5rem;">Grand Total: J$${grand.toLocaleString()}</h3>
-                <button id="clear-cart-btn" class="btn" style="width:auto; display:inline-block; background: var(--error-red); padding:10px 20px; margin-right:10px;" onclick="clearCart()">Clear Cart</button>
-                <a href="checkout.html" class="btn checkout-link-btn" style="width:auto; display:inline-block; padding:10px 20px;">Proceed to Checkout</a>
-             </div>`;
-             
-    container.innerHTML = html;
+    var rowsHTML = cart.map(function(item) {
+        var itemSub = item.price * item.quantity;
+        return `
+                <div class="cart-row">
+                    <img src="../Assets/${item.image}" alt="${item.name}">
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-price">J$${item.price.toLocaleString()} each</div>
+                    </div>
+                    <div class="cart-col-center">
+                        <div class="qty-controls">
+                            <button type="button" class="qty-btn" onclick="changeQty(${item.id}, -1)">&#8722;</button>
+                            <span class="qty-display">${item.quantity}</span>
+                            <button type="button" class="qty-btn" onclick="changeQty(${item.id}, 1)">&#43;</button>
+                        </div>
+                    </div>
+                    <div class="cart-col-center item-subtotal">J$${itemSub.toLocaleString()}</div>
+                    <div class="cart-col-center">
+                        <span style="font-size:0.8rem;">${discount > 0 ? '<span style="color:#2e9e5b;font-weight:600;">−10%</span>' : '—'}</span>
+                    </div>
+                    <div>
+                        <button type="button" class="remove-item-btn" onclick="removeFromCart(${item.id})">✕</button>
+                    </div>
+                </div>`;
+    }).join('');
+
+    var itemsLeft = Math.max(0, 3 - totalQty);
+    var barPercent = Math.min(100, Math.round((totalQty / 3) * 100));
+    var promoHTML = discount > 0
+        ? '<span class="promo-badge">✔ 10% discount applied!</span>'
+        : `<div class="promo-progress">
+               <div class="promo-progress-label">Add ${itemsLeft} more item${itemsLeft !== 1 ? 's' : ''} to unlock a 10% discount!</div>
+               <div class="promo-bar-bg"><div class="promo-bar-fill" style="width:${barPercent}%"></div></div>
+           </div>`;
+
+    container.innerHTML = `
+                <div class="cart-items-box">
+                    <div class="cart-items-header">
+                        <span>Item</span>
+                        <span></span>
+                        <span>Quantity</span>
+                        <span>Subtotal</span>
+                        <span>Discount</span>
+                        <span>Remove</span>
+                    </div>
+                    ${rowsHTML}
+                </div>
+
+                <div class="cart-actions">
+                    <div class="cart-actions-left">
+                        <a href="index.html" class="btn btn-outline">&#8592; Continue Shopping</a>
+                        <button type="button" class="btn btn-danger" id="clear-cart-btn" onclick="clearCart()">Clear All</button>
+                        <button type="button" class="btn btn-outline" onclick="closeCartView()">Close</button>
+                    </div>
+                    <div class="cart-actions-right">
+                        <a href="checkout.html" class="btn">Check Out</a>
+                    </div>
+                </div>
+
+                <div class="cart-summary-card">
+                    <h3>Order Summary</h3>
+                    ${promoHTML}
+                    <div class="summary-row">
+                        <span>Subtotal (${totalQty} item${totalQty !== 1 ? 's' : ''})</span>
+                        <span>J$${subtotal.toLocaleString()}</span>
+                    </div>
+                    <div class="summary-row discount">
+                        <span>Discount (10% for 3+ items)</span>
+                        <span>− J$${discount.toLocaleString()}</span>
+                    </div>
+                    <div class="summary-row tax">
+                        <span>GCT (15%)</span>
+                        <span>J$${tax.toLocaleString()}</span>
+                    </div>
+                    <hr class="summary-divider">
+                    <div class="summary-row grand-total">
+                        <span>Grand Total</span>
+                        <span>J$${grandTotal.toLocaleString()}</span>
+                    </div>
+                    <a href="checkout.html" class="btn summary-checkout-btn">Check Out</a>
+                    <a href="index.html" class="summary-continue-link">← Continue Shopping</a>
+                </div>`;
+}
+
+function closeCartView() {
+    window.location.href = 'index.html';
+}
+
+function changeQty(id, delta) {
+    var currentUser = parseCurrentUser();
+    if (!currentUser || !Array.isArray(currentUser.cart)) return;
+    var item = currentUser.cart.find(function(i) { return i.id === id; });
+    if (!item) return;
+    item.quantity += delta;
+    if (item.quantity <= 0) {
+        currentUser.cart = currentUser.cart.filter(function(i) { return i.id !== id; });
+    }
+    localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
+    syncCartToDatabase(currentUser);
+    displayCart();
+    updateCartIcon();
 }
 
 function displayCheckoutSummary() {
     var container = document.querySelector('#checkout-summary');
     var amtInput = document.getElementById('amount');
-    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
-    var cart = (currentUser && currentUser.cart) ? currentUser.cart : [];
+    var currentUser = parseCurrentUser();
+    var cart = (currentUser && Array.isArray(currentUser.cart)) ? currentUser.cart : [];
     if (!container) return;
 
     let subtotal = 0, totalQty = 0;
@@ -467,9 +582,10 @@ function displayCheckoutSummary() {
 }
 
 function removeFromCart(id) {
-    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
+    var currentUser = parseCurrentUser();
     if (!currentUser) return;
-    
+    if (!Array.isArray(currentUser.cart)) currentUser.cart = [];
+
     currentUser.cart = currentUser.cart.filter(item => item.id !== id);
     localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
     syncCartToDatabase(currentUser);
@@ -478,9 +594,9 @@ function removeFromCart(id) {
 }
 
 function clearCart() {
-    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
+    var currentUser = parseCurrentUser();
     if (!currentUser) return;
-    
+
     currentUser.cart = [];
     localStorage.setItem('CurrentUser', JSON.stringify(currentUser));
     syncCartToDatabase(currentUser);
@@ -489,8 +605,8 @@ function clearCart() {
 }
 
 function updateCartIcon() {
-    var currentUser = JSON.parse(localStorage.getItem('CurrentUser'));
-    var cart = (currentUser && currentUser.cart) ? currentUser.cart : [];
+    var currentUser = parseCurrentUser();
+    var cart = (currentUser && Array.isArray(currentUser.cart)) ? currentUser.cart : [];
     var count = cart.reduce((sum, item) => sum + item.quantity, 0);
     
     var navLinks = document.querySelectorAll('nav a');
@@ -513,8 +629,8 @@ function setupMobileNav() {
 }
 
 function syncCartToDatabase(userObj) {
-    var registrationData = JSON.parse(localStorage.getItem('RegistrationData')) || [];
-    var index = registrationData.findIndex(function(u) { return u.trn === userObj.trn; });
+    var registrationData = parseRegistrationData();
+    var index = registrationData.findIndex(function(u) { return normalizeTrn(u.trn) === normalizeTrn(userObj.trn); });
     if (index !== -1) {
         registrationData[index].cart = userObj.cart;
         localStorage.setItem('RegistrationData', JSON.stringify(registrationData));
