@@ -79,6 +79,65 @@ nav a:hover {
     color: var(--accent-gold);
 }
 
+
+#shop-section {
+    scroll-margin-top: 100px; 
+}
+
+#productgrid {
+    scroll-margin-top: 100px; 
+}
+
+
+.promo-banner {
+    background-color: var(--white); 
+    color: var(--primary-dark-grey); 
+    text-align: center;
+    padding: 80px 20px; 
+    border-radius: 0; 
+    max-width: 100%; 
+    margin: 0 0 40px 0; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.promo-banner h2 {
+    color: var(--primary-dark-grey);
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.promo-banner p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: var(--text-dark);
+}
+
+
+.highlight-text {
+    color: var(--accent-gold);
+    font-size: 1.8rem; 
+    font-weight: 700;
+}
+
+.banner-btn {
+    display: inline-block !important; 
+    width: auto !important; 
+    background-color: var(--primary-dark-grey) !important;
+    color: var(--white) !important;
+    padding: 12px 45px !important; 
+    font-size: 1.1rem !important; 
+    border-radius: 30px !important;
+    font-weight: 600 !important;
+    margin-top: 10px;
+}
+
+.banner-btn:hover {
+    background-color: var(--accent-gold) !important;
+    color: var(--primary-dark-grey) !important;
+    transform: translateY(-3px);
+}
+
+
 /* 1b Layout to pushes footer down */
 main {
     flex: 1;
@@ -91,6 +150,7 @@ section {
     margin: 40px auto;
     padding: 0 5%;
 }
+
 
 /* 1c Consistency for Footer across all pages */
 footer {
@@ -330,7 +390,7 @@ input, select {
 
 /* 1c Consistency - About page */
 .about-container {
-    max-width: 900px;
+    max-width: 500px;
     margin: 40px auto;
     padding: 0 20px;
     text-align: center;
@@ -349,13 +409,33 @@ input, select {
 /* 1a CSS Selectors - Class selector */
 .info-card {
     background: var(--white);
-    padding: 40px;
+    padding: 25px;
     border-radius: 15px;
     box-shadow: 0 15px 35px rgba(0,0,0,0.1);
     transition: var(--transition);
     border: 1px solid transparent;
     text-align: left;
 }
+
+.info-card h3 {
+    color: var(--primary-dark-grey);
+    margin-bottom: 15px;
+}
+
+.info-card a {
+    color: var(--primary-dark-grey);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.dev-details {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0 5px 0;
+}
+
+.dev-details li { margin-bottom: 10px; }
 
 /* 1a CSS Selectors - Pseudo-class */
 .info-card:hover {
@@ -377,26 +457,10 @@ input, select {
     text-decoration: underline;
 }
 
-.info-card h3 {
-    color: var(--primary-dark-grey);
-    margin-bottom: 15px;
+/* 1a CSS Selectors - Pseudo-class hover for Group ID numbers */
+.info-card:hover .id-number {
+    color: var(--accent-gold) !important;
 }
-
-.info-card a {
-    color: var(--primary-dark-grey);
-    text-decoration: none;
-    font-weight: 600;
-    transition: var(--transition);
-}
-
-.dev-details {
-    list-style: none;
-    padding: 0;
-    margin: 15px 0;
-}
-
-.dev-details li { margin-bottom: 10px; }
-
 
 /* 1b Layout for mobile view*/
 @media screen and (max-width: 600px) {
